@@ -5,12 +5,11 @@ services:
       context: ./apache-php
     ports: 
       - 80:80
-    privileged: true
     links:
       - db
     volumes:
       - "./lara-d/:/var/www/html"
-      - "./apache-php/apache.conf:/etc/httpd/conf/httpd.conf"
+      - "./apache-php/apache.conf:/etc/apache2/sites-available/000-default.conf"
     container_name: "apache-php"
   db:
     image: mysql:5.7

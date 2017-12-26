@@ -1,21 +1,31 @@
-FROM centos
+FROM ubuntu:16.04
 
-RUN yum -y update 
+# システム更新
+RUN apt-get update && apt-get -y upgrade && apt-get dist-upgrade
 
-# 外部リポジトリ（EPEL, Remi）を追加
-RUN yum -y install epel-release
-RUN yum -y install http://rpms.remirepo.net/enterprise/remi-release-7.rpm
+# apacheをインストール
+RUN apt-get -y install apache2 apache2-utils
 
-# apache php その他必要な必要なパッケージを導入
-RUN yum -y install httpd
-RUN yum -y install --enablerepo=remi,remi-php72 php php-cli php-common php-devel php-fpm php-gd php-mbstring php-mysqlnd php-pdo php-pear php-pecl-apcu php-soap php-xml php-xmlrpc 
-RUN yum -y installzip unzip
+# add-apt-repositoryを使用可能にする
+RUN apt-get install -y software-properties-common python-software-properties
+
+# 文字コードをUTF8セットしてphp7.2をインストール
+RUN apt-get -y install language-pack-en
+RUN update-locale LANG=en_US.UTF-8
+RUN LC_ALL=C.UTF-8 add-apt-repository -y -u ppa:ondrej/php
+RUN apt-get install -y php7.2
+
+# その他PHP拡張パッケージをインストール
+RUN apt-get install -y libapache2-mod-php7.2 php7.2-bcmath php7.2-bz2 php7.2-cli php7.2-common php7.2-curl php7.2-dba php7.2-gd php7.2-gmp php7.2-imap php7.2-intl php7.2-ldap php7.2-mbstring php7.2-mysql php7.2-recode php7.2-snmp php7.2-soap php7.2-tidy php7.2-xml php7.2-xmlrpc php7.2-xsl php7.2-zip
 
 # composerのインストール
+RUN apt-get -y install curl
 RUN curl -sS https://getcomposer.org/installer | php
 RUN mv composer.phar /usr/local/bin/composer
 
-RUN systemctl enable httpd
-CMD ["/usr/sbin/init"]
+RUN a2enmod rewrite
+
+# apacheをフォアグラウンドで起動
+CMD apachectl -D FOREGROUND
 
 WORKDIR /var/www/html
